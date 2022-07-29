@@ -5,8 +5,8 @@ const MarkType = {
     UNIT: 'unit',
     ARC: 'arc',
     AREA: 'area',
-    HBAR: 'hbar'
-
+    HBAR: 'hbar',
+    PROGRESS: 'progress'
 }
 
 export default MarkType

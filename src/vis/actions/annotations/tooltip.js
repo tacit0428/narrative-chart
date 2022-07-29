@@ -1,5 +1,5 @@
 import Annotator from './annotator';
-import { PieChart } from '../../charts';
+import { PieChart,ProgressBar } from '../../charts';
 import Color from '../../visualization/color';
 import * as d3 from 'd3';
 
@@ -109,20 +109,25 @@ class Tooltip extends Annotator {
         let svg = chart.svg();
         // let yEncoding = chart.y;
 
-        let focus_elements = svg.selectAll(".mark")
-            .filter(function (d) {
-                if (target.length === 0) {
-                    return true
-                }
-                for (const item of target) {
-                    if (d[item.field] === item.value) {
-                        continue
-                    } else {
-                        return false
+        let focus_elements
+        if (chart instanceof ProgressBar) {
+            focus_elements = svg.selectAll(".mark")
+        } else {
+            focus_elements = svg.selectAll(".mark")
+                .filter(function (d) {
+                    if (target.length === 0) {
+                        return true
                     }
-                }
-                return true
-            });
+                    for (const item of target) {
+                        if (d[item.field] === item.value) {
+                            continue
+                        } else {
+                            return false
+                        }
+                    }
+                    return true
+                });
+        }
         
         // if the focus defined in the spec does not exist
         if (focus_elements.length === 0) {
@@ -182,7 +187,7 @@ class Tooltip extends Annotator {
                 const bbox = focus_element.getBBox();
                 data_x = bbox.x + bbox.width / 2;
                 data_y = bbox.y;
-                offset_y = -5;
+                offset_y = chart instanceof ProgressBar ? -10 : -5;
 
                 // filter out the rect marks which height is 0 ( for stacked bar charts)
                 if(bbox.height===0){

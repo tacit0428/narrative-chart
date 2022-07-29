@@ -5,6 +5,7 @@ import { Unitvis } from '../../charts';
 import { LineChart } from '../../charts';
 import { Scatterplot } from '../../charts';
 import AreaChart from '../../charts/areachart';
+import { ProgressBar } from '../../charts';
 
 /**
  * @description An annotator for filling texture.
@@ -48,20 +49,25 @@ class Texture extends Annotator {
 
             
         const uid = Date.now().toString() + Math.random().toString(36).substring(2);
-        let focus_elements = svg.selectAll(".mark")
-        .filter(function (d) {
-            if (target.length === 0) {
-                return true
-            }
-            for (const item of target) {
-                if (d[item.field] === item.value) {
-                    continue
-                } else {
-                    return false
-                }
-            }
-            return true
-        });
+        let focus_elements
+        if (chart instanceof ProgressBar) {
+            focus_elements = svg.selectAll(".mark")
+        } else {
+            focus_elements = svg.selectAll(".mark")
+                .filter(function (d) {
+                    if (target.length === 0) {
+                        return true
+                    }
+                    for (const item of target) {
+                        if (d[item.field] === item.value) {
+                            continue
+                        } else {
+                            return false
+                        }
+                    }
+                    return true
+                });
+        }
 
         if ("type" in animation && animation["type"] === "wipe") {
             var configWipe = {
@@ -330,7 +336,32 @@ class Texture extends Annotator {
                         return "url(#linechart-texture-image-" + uid + ")"
                     } 
                 )
-            } else{
+             } else if (chart instanceof ProgressBar) {
+                let focus_element = svg.selectAll(".mark")
+                let node = focus_element.nodes()[0]
+                let bbox = node.getBBox()
+                var config = {
+                    "texture_size": bbox.width
+                }
+                var defs = svg.append('svg:defs');
+                defs.append("svg:pattern")
+                    .attr("id", "texture_background")
+                    .attr("width", config.texture_size)
+                    .attr("height", config.texture_size)
+                    .attr("patternUnits", "userSpaceOnUse")
+                    .append("svg:image")
+                    .attr("xlink:href", style["background-image"])
+                    .attr("width", config.texture_size)
+                    .attr("height", config.texture_size)
+                    .attr("x", 0)
+                    .attr("y", 0);
+
+                focus_element
+                    .transition()
+                    .duration('duration' in animation ? animation['duration'] : 0)
+                    .style("fill", "url(#texture_background)")
+
+            } else {
                 var config = {
                     "texture_size" : 300
                 }

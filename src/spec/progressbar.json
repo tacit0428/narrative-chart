@@ -1,0 +1,172 @@
+{
+  "data": {
+    "url": "http://localhost:3000/spreadsheets/sales.csv",
+    "schema": [
+      {
+        "field": "Year",
+        "type": "temporal"
+      },
+      {
+        "field": "Brand",
+        "type": "categorical"
+      },
+      {
+        "field": "Category",
+        "type": "categorical"
+      },
+      {
+        "field": "Sales",
+        "type": "numerical"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "add": "config",
+      "mode": "dark",
+      "emotion": "disturbing"
+    },
+    {
+      "select": [
+        {
+          "field": "Sales",
+          "aggregate": "count"
+        },
+        {
+          "field": "Brand"
+        }
+      ],
+      "groupby": [
+        {
+          "field": "Brand"
+        }
+      ],
+      "filter": []
+    },
+    {
+      "add": "chart",
+      "mark": {
+        "type": "progress",
+        "style": {
+          "corner-radius": 3,
+          "stroke-width": 1,
+          "stroke": "white"
+        }
+      },
+      "style": {
+        "background-image": {
+          "url": "https://narchart.github.io/editor/background/company_background2.png"
+        }
+      }
+    },
+    {
+      "add": "title",
+      "text": "Sales",
+      "style": {
+        "font-color": "#FE5C34",
+        "font-size": 37,
+        "font-family": "Georgia",
+        "font-style": "italic",
+        "position": "top-left"
+      },
+      "animation": {
+        "duration": 1000
+      }
+    },
+    {
+      "add": "caption",
+      "text": "We collected data from xxx.com and analyzed xxx between 2010 and 2019.",
+      "style": {
+        "font-color": "#FE5C34",
+        "font-size": 15,
+        "position": "top-left",
+        "top-padding": 5
+      },
+      "animation": {
+        "duration": 1000
+      }
+    },
+    {
+      "add": "encoding",
+      "channel": "x",
+      "field": "Sales"
+    },
+    {
+      "add": "annotation",
+      "method": "fill",
+      "target": [
+        {
+          "field": "Brand",
+          "value": "Ford"
+        }
+      ],
+      "style": {
+        "color": "#CCABAB"
+      },
+      "animation": {
+        "duration": 1000
+      }
+    },
+    {
+      "add": "annotation",
+      "method": "contour",
+      "target": [
+        {
+          "field": "Brand",
+          "value": "Ford"
+        }
+      ],
+      "style": {
+        "color": "orange"
+      },
+      "animation": {
+        "duration": 1000
+      }
+    },
+    {
+      "add": "annotation",
+      "method": "arrow",
+      "target": [
+        {
+          "field": "Brand",
+          "value": "Ford"
+        }
+      ],
+      "style": {
+        "color": "red"
+      }
+    },
+    {
+      "add": "annotation",
+      "method": "label",
+      "target": [
+        {
+          "field": "Brand",
+          "value": "Ford"
+        }
+      ],
+      "style": {
+        "text": "Ford: 20%",
+        "font-color": "#C7FFFF",
+        "font-size": 20,
+        "font-weight": "bold"
+      },
+      "animation": {
+        "duration": 1000
+      }
+    },
+    {
+      "add": "annotation",
+      "method": "texture",
+      "target": [
+        {
+          "field": "Brand",
+          "value": "Ford"
+        }
+      ],
+      "style": {
+        "background-image": "https://narchart.github.io/editor/background/pie_background2.png"
+      }
+    }
+  ]
+}

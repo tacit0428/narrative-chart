@@ -1,5 +1,5 @@
 import Annotator from './annotator';
-import { PieChart, HBarChart } from '../../charts';
+import { PieChart, HBarChart,ProgressBar } from '../../charts';
 
 /**
  * @description An annotator for drawing symbols.
@@ -21,21 +21,26 @@ class Symbol extends Annotator {
      */
     annotate(chart, target, style, animation) {
         let svg = chart.svg();
-        let focus_elements = svg.selectAll(".mark")
-            .filter(function (d) {
-                if (target.length === 0) {
-                    return true
-                }
-                for (const item of target) {
-                    if (d[item.field] === item.value) {
-                        continue
-                    } else {
-                        return false
+        let focus_elements
+        if (chart instanceof ProgressBar) {
+            focus_elements = svg.selectAll(".mark")
+        } else {
+            focus_elements = svg.selectAll(".mark")
+                .filter(function (d) {
+                    if (target.length === 0) {
+                        return true
                     }
-                }
-                return true
-            });
-
+                    for (const item of target) {
+                        if (d[item.field] === item.value) {
+                            continue
+                        } else {
+                            return false
+                        }
+                    }
+                    return true
+                });
+        }
+        
         // if the focus defined in the spec does not exist
         if (focus_elements.length === 0) {
             return;
@@ -45,8 +50,14 @@ class Symbol extends Annotator {
 
             // identify the position
             let data_x, data_y, data_r, offset_x, offset_y;
-            const width_icon = style["width"] || 20;
-            const height_icon = style["width"] || style["height"] || 20;
+            let default_width = 20, default_height = 20
+            if (chart instanceof ProgressBar) {
+                let barHeight = focus_element.getAttribute("height")
+                default_width = barHeight / 2
+                default_height = barHeight / 2
+            }
+            const width_icon = style["width"] || default_width;
+            const height_icon = style["width"] || style["height"] || default_height;
             const nodeName = focus_element.nodeName;
             if (nodeName === "circle") { // get center
                 data_x = parseFloat(focus_element.getAttribute("cx"));
@@ -60,6 +71,11 @@ class Symbol extends Annotator {
                     data_y = bbox.y + bbox.height / 2;
                     offset_x = 10;
                     offset_y = -10;
+                } else if (chart instanceof ProgressBar) {
+                    data_x = bbox.x + bbox.width / 2;
+                    data_y = bbox.y;
+                    offset_x = 0;
+                    offset_y = -height_icon - 10;
                 } else {
                     data_x = bbox.x + bbox.width / 2;
                     data_y = bbox.y;

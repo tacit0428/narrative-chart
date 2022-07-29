@@ -1,6 +1,6 @@
 import Annotator from './annotator'
 import Color from '../../visualization/color';
-import { PieChart } from '../../charts';
+import { PieChart, ProgressBar } from '../../charts';
 import * as d3 from 'd3';
 
 const COLOR = new Color();
@@ -25,21 +25,25 @@ class Arrow extends Annotator {
     annotate(chart, target, style, animation) {
         let svg = chart.svg();
         // filter for elements that meet the conditions(`target`)
-        let focus_elements = svg.selectAll(".mark")
-            .filter(function (d) {
-                if (target.length === 0) {
-                    return true
-                }
-                for (const item of target) {
-                    if (d[item.field] === item.value) {
-                        continue
-                    } else {
-                        return false
+        let focus_elements
+        if (chart instanceof ProgressBar) {
+            focus_elements = svg.selectAll(".mark")
+        } else {
+            focus_elements = svg.selectAll(".mark")
+                .filter(function (d) {
+                    if (target.length === 0) {
+                        return true
                     }
-                }
-                return true
-            });
-
+                    for (const item of target) {
+                        if (d[item.field] === item.value) {
+                            continue
+                        } else {
+                            return false
+                        }
+                    }
+                    return true
+                });
+        }
         // return if the focus defined in the spec does not exist
         if (focus_elements.empty()) {
             return;
@@ -74,7 +78,7 @@ class Arrow extends Annotator {
             scale_x = 1;
             scale_y = 1;
         }
- 
+
         focus_elements.nodes().forEach((one_element) => {
             // identify the position to place the arrow
             let data_x, data_y, offset, offset_x, offset_y, center_x, center_y;
@@ -84,11 +88,17 @@ class Arrow extends Annotator {
                 data_y = parseFloat(one_element.getAttribute("cy"));
                 offset = 0// parseFloat(one_element.getAttribute("r")) / 1.414; // √2 ~ 1.414
             } else if (nodeName === "rect") {
-                offset = 0 // parseFloat(one_element.getAttribute("width")) / 2;
-                data_x = parseFloat(one_element.getAttribute("x")) + parseFloat(one_element.getAttribute("width")) / 2;
-                data_y = parseFloat(one_element.getAttribute("y"));
+                if (chart instanceof ProgressBar) {
+                    offset = 0 // parseFloat(one_element.getAttribute("width")) / 2;
+                    data_x = parseFloat(one_element.getAttribute("x")) + parseFloat(one_element.getAttribute("width")) - 10;
+                    data_y = parseFloat(one_element.getAttribute("y")) + parseFloat(one_element.getAttribute("height")) - 10;
+                } else {
+                    offset = 0 // parseFloat(one_element.getAttribute("width")) / 2;
+                    data_x = parseFloat(one_element.getAttribute("x")) + parseFloat(one_element.getAttribute("width")) / 2;
+                    data_y = parseFloat(one_element.getAttribute("y"));
+                }
             } else { // currently only support piechart
-                if(chart instanceof PieChart){
+                if (chart instanceof PieChart) {
                     pie_arrow_points = arrow_points;
 
                     let data_temp = one_element.__data__;
@@ -100,7 +110,7 @@ class Arrow extends Annotator {
 
                     // scale
                     pie_arrow_points = pie_arrow_points.map((point) => [scale_x * point[0], scale_y * point[1]]);
-                    
+
                     // rotate
                     const _rev45 = (45 * Math.PI / 180);
                     const _tan = (center_x - data_x) / (center_y - data_y);
@@ -114,14 +124,14 @@ class Arrow extends Annotator {
                     }
                     alpha += _rev45;
                     pie_arrow_points = pie_arrow_points.map((point) => [Math.cos(alpha) * point[0] - Math.sin(alpha) * point[1], Math.sin(alpha) * point[0] + Math.cos(alpha) * point[1]]);
-                    
+
                     // translate
                     offset = 0;
                     offset_x = (outer_r * 0.8) * (data_x > center_x ? 1 : -1) * Math.sin(Math.atan(Math.abs(_tan)));
                     offset_y = (outer_r * 0.8) * (data_y > center_y ? 1 : -1) * Math.cos(Math.atan(Math.abs(_tan)));
                     pie_arrow_points = pie_arrow_points.map((point) => [center_x + offset_x + point[0], center_y + offset_y + point[1]]);
 
-                } else{
+                } else {
                     return;
                 }
             }
@@ -152,7 +162,7 @@ class Arrow extends Annotator {
                     })
                     .attr("transform", `translate(${parentWidth - Math.abs(bbox.x) - arrow_x}, 0)`) // (parentWidth-bbox.width)/2 for margin
                     .transition()
-                    .duration('duration' in animation ? animation['duration']: 0)
+                    .duration('duration' in animation ? animation['duration'] : 0)
                     .attr("transform", "translate(0, 0)");
             } else if ("type" in animation && animation["type"] === "wipe") {
                 // ensure that clip-paths for different arrows won't affect one another. 
@@ -169,24 +179,24 @@ class Arrow extends Annotator {
                             return COLOR.ANNOTATION;
                         }
                     });
-                
+
                 const arrowBox = arrow.node().getBBox();
 
                 if (!(chart instanceof PieChart)) {
                     svg.append("defs")
-                    .append("clipPath")
-                    .attr("id", `clip_arrow_${uid}`)
-                    .append("rect")
-                    .attr("x", arrowBox.x+arrowBox.width)
-                    .attr("y", arrowBox.y+arrowBox.height)
-                    .attr("height", 0)
-                    .attr("width", 0)
-                    .transition()
-                    .duration('duration' in animation ? animation['duration']: 0)
-                    .attr("x", arrowBox.x)
-                    .attr("y", arrowBox.y) 
-                    .attr("height", arrowBox.height)
-                    .attr("width", arrowBox.width);
+                        .append("clipPath")
+                        .attr("id", `clip_arrow_${uid}`)
+                        .append("rect")
+                        .attr("x", arrowBox.x + arrowBox.width)
+                        .attr("y", arrowBox.y + arrowBox.height)
+                        .attr("height", 0)
+                        .attr("width", 0)
+                        .transition()
+                        .duration('duration' in animation ? animation['duration'] : 0)
+                        .attr("x", arrowBox.x)
+                        .attr("y", arrowBox.y)
+                        .attr("height", arrowBox.height)
+                        .attr("width", arrowBox.width);
                 } else {
                     if (data_x > center_x) {
                         if (data_y > center_y) {
@@ -194,14 +204,14 @@ class Arrow extends Annotator {
                                 .append("clipPath")
                                 .attr("id", `clip_arrow_${uid}`)
                                 .append("rect")
-                                .attr("x", arrowBox.x+arrowBox.width)
-                                .attr("y", arrowBox.y+arrowBox.height)
+                                .attr("x", arrowBox.x + arrowBox.width)
+                                .attr("y", arrowBox.y + arrowBox.height)
                                 .attr("height", 0)
                                 .attr("width", 0)
                                 .transition()
-                                .duration('duration' in animation ? animation['duration']: 0)
+                                .duration('duration' in animation ? animation['duration'] : 0)
                                 .attr("x", arrowBox.x)
-                                .attr("y", arrowBox.y) 
+                                .attr("y", arrowBox.y)
                                 .attr("height", arrowBox.height)
                                 .attr("width", arrowBox.width);
                         } else {
@@ -209,12 +219,12 @@ class Arrow extends Annotator {
                                 .append("clipPath")
                                 .attr("id", `clip_arrow_${uid}`)
                                 .append("rect")
-                                .attr("x", arrowBox.x+arrowBox.width)
+                                .attr("x", arrowBox.x + arrowBox.width)
                                 .attr("y", arrowBox.y)
                                 .attr("height", 0)
                                 .attr("width", 0)
                                 .transition()
-                                .duration('duration' in animation ? animation['duration']: 0)
+                                .duration('duration' in animation ? animation['duration'] : 0)
                                 .attr("x", arrowBox.x)
                                 .attr("height", arrowBox.height)
                                 .attr("width", arrowBox.width);
@@ -226,12 +236,12 @@ class Arrow extends Annotator {
                                 .attr("id", `clip_arrow_${uid}`)
                                 .append("rect")
                                 .attr("x", arrowBox.x)
-                                .attr("y", arrowBox.y+arrowBox.height)
+                                .attr("y", arrowBox.y + arrowBox.height)
                                 .attr("height", 0)
                                 .attr("width", 0)
                                 .transition()
-                                .duration('duration' in animation ? animation['duration']: 0)
-                                .attr("y", arrowBox.y) 
+                                .duration('duration' in animation ? animation['duration'] : 0)
+                                .attr("y", arrowBox.y)
                                 .attr("height", arrowBox.height)
                                 .attr("width", arrowBox.width);
                         } else {
@@ -244,7 +254,7 @@ class Arrow extends Annotator {
                                 .attr("height", 0)
                                 .attr("width", 0)
                                 .transition()
-                                .duration('duration' in animation ? animation['duration']: 0)
+                                .duration('duration' in animation ? animation['duration'] : 0)
                                 .attr("height", arrowBox.height)
                                 .attr("width", arrowBox.width);
                         }
@@ -256,7 +266,7 @@ class Arrow extends Annotator {
                     .attr("d", d3.line()(new_arrow_points))
                     .attr("fill-opacity", 0)
                     .transition()
-                    .duration('duration' in animation ? animation['duration']: 0)
+                    .duration('duration' in animation ? animation['duration'] : 0)
                     .attr("fill", () => {
                         if ("color" in style) {
                             return style["color"];

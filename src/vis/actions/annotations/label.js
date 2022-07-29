@@ -1,5 +1,5 @@
 import Annotator from './annotator';
-import { Scatterplot, PieChart, HBarChart } from '../../charts';
+import { Scatterplot, PieChart, HBarChart,ProgressBar } from '../../charts';
 import Color from '../../visualization/color';
 
 const COLOR = new Color();
@@ -27,20 +27,25 @@ class Label extends Annotator {
 
         const yEncoding = chart.y;
 
-        let focus_elements = svg.selectAll(".mark")
-            .filter(function (d) {
-                if (target.length === 0) {
-                    return true
-                }
-                for (const item of target) {
-                    if (d[item.field] === item.value) {
-                        continue
-                    } else {
-                        return false
+        let focus_elements
+        if (chart instanceof ProgressBar) {
+            focus_elements = svg.selectAll(".mark")
+        } else {
+            focus_elements = svg.selectAll(".mark")
+                .filter(function (d) {
+                    if (target.length === 0) {
+                        return true
                     }
-                }
-                return true
-            });
+                    for (const item of target) {
+                        if (d[item.field] === item.value) {
+                            continue
+                        } else {
+                            return false
+                        }
+                    }
+                    return true
+                });
+        }
 
         // if the focus defined in the spec does not exist
         if (focus_elements.length === 0) {
@@ -77,6 +82,7 @@ class Label extends Annotator {
             let data_x, data_y, data_r, offset_x, offset_y;
             const nodeName = focus_element.nodeName;
             let arc_angle;
+            let bbox;
 
             if (nodeName === "circle") { // get center
                 data_x = parseFloat(focus_element.getAttribute("cx"));
@@ -84,13 +90,18 @@ class Label extends Annotator {
                 data_r = parseFloat(focus_element.getAttribute("r"));
                 offset_y = - data_r - 10;
             } else if (nodeName === "rect") {
-                const bbox = focus_element.getBBox();
+                bbox = focus_element.getBBox();
                 if (chart instanceof HBarChart) {
                     data_x = bbox.x;
                     data_y = bbox.y + bbox.height / 2;
                     // TODO - the offset should be determinded by size of label
                     offset_x = 25;
                     offset_y = 5;
+                } else if (chart instanceof ProgressBar) {
+                    data_x = bbox.x + bbox.width / 2;
+                    data_y = bbox.y;
+                    offset_x = 0;
+                    offset_y = -10;
                 } else {
                     data_x = bbox.x + bbox.width / 2;
                     data_y = bbox.y;
@@ -112,11 +123,13 @@ class Label extends Annotator {
 
             const customizeOffset_x = style["offset-x"] || 0;
             const customizeOffset_y = style["offset-y"] || 0;
+            let x = data_x + offset_x + customizeOffset_x
+            let y = data_y + offset_y + customizeOffset_y
             // draw text
-            svg.append("text")
+            let textElement = svg.append("text")
                 .attr("class", "text")
-                .attr("x", data_x + offset_x + customizeOffset_x)
-                .attr("y", data_y + offset_y + customizeOffset_y)
+                .attr("x", x)
+                .attr("y", y)
                 .text(formatData)
                 .attr("font-size", style["font-size"] || 12)
                 .attr("font-family", style["font-family"] || "Inter")
@@ -129,6 +142,13 @@ class Label extends Annotator {
                 .transition()
                 .duration('duration' in animation ? animation['duration'] : 0)
                 .attr("fill-opacity", 1);
+            
+            if (chart instanceof ProgressBar) {
+                // left alignment
+                let text = svg.selectAll(".text").nodes()[0]
+                let textWidth = text.getBBox().width
+                textElement.attr("x", x - (bbox.width / 2 - textWidth / 2))
+            }
         }
 
     }
