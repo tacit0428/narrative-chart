@@ -222,6 +222,9 @@ class ProgressBar extends Chart {
         .attr('width', width)
         .attr('x', 0)
         .attr('y', 0)
+        .attr("stroke", this.stroke)
+        .attr("stroke-width", this.strokeWidth)
+        .attr("stroke-opacity", this.strokeOpacity)
     }
   }
 
@@ -242,83 +245,82 @@ class ProgressBar extends Chart {
       const colorEncoding = this.color;
       let content = d3.select(".content");
 
+      console.log(data,xEncoding,yEncoding,colorEncoding)
+      // /** clear rects */
+      // d3.selectAll(".rects").remove();
 
-      /** clear rects */
-      d3.selectAll(".rects").remove();
+      // /** process data */
+      // // get series
+      // let seriesData = {};
+      // data.forEach(d => {
+      //   if (seriesData[d[colorEncoding]]) {
+      //     seriesData[d[colorEncoding]].push(d);
+      //   } else {
+      //     seriesData[d[colorEncoding]] = [d];
+      //   }
+      // });
+      // let series = Object.keys(seriesData);
+      // let seriesDict = {}
+      // series.forEach(d => seriesDict[d] = 0)
 
-      /** process data */
-      // get series
-      let seriesData = {};
-      data.forEach(d => {
-        if (seriesData[d[colorEncoding]]) {
-          seriesData[d[colorEncoding]].push(d);
-        } else {
-          seriesData[d[colorEncoding]] = [d];
-        }
-      });
-      let series = Object.keys(seriesData);
-      let seriesDict = {}
-      series.forEach(d => seriesDict[d] = 0)
-
-      // adjust data structure to fit stackdata
-      const processedData = this.processedData()
-      let processedDict = {}
-      processedData.forEach((d, i) => {
-        let temp = {}
-        temp[d[colorEncoding]] = d[yEncoding]
-        processedDict[d[xEncoding]] = { ...processedDict[d[xEncoding]], ...temp }
-      })
-      let stackProcessedData = []
-      for (let key in processedDict) {
-        let temp2 = {}
-        temp2[xEncoding] = key
-        stackProcessedData.push({ ...seriesDict, ...temp2, ...processedDict[key] })
-      }
-      let stackData = d3.stack().keys(series)(stackProcessedData);
+      // // adjust data structure to fit stackdata
+      // const processedData = this.processedData()
+      // let processedDict = {}
+      // processedData.forEach((d, i) => {
+      //   let temp = {}
+      //   temp[d[colorEncoding]] = d[yEncoding]
+      //   processedDict[d[xEncoding]] = { ...processedDict[d[xEncoding]], ...temp }
+      // })
+      // let stackProcessedData = []
+      // for (let key in processedDict) {
+      //   let temp2 = {}
+      //   temp2[xEncoding] = key
+      //   stackProcessedData.push({ ...seriesDict, ...temp2, ...processedDict[key] })
+      // }
+      // let stackData = d3.stack().keys(series)(stackProcessedData);
 
 
+      // /** set the ranges */
+      // let xScale = d3.scaleBand()
+      //   .range([0, width - 12])
+      //   .domain(data.map(d => d[xEncoding]))
+      //   .padding(this.binSpacing);
 
-      /** set the ranges */
-      let xScale = d3.scaleBand()
-        .range([0, width - 12])
-        .domain(data.map(d => d[xEncoding]))
-        .padding(this.binSpacing);
+      // let yScale = d3.scaleLinear()
+      //   .range([height, 0])
+      //   .domain([0, d3.max(stackData[stackData.length - 1], d => d[1])])
+      //   .nice();
 
-      let yScale = d3.scaleLinear()
-        .range([height, 0])
-        .domain([0, d3.max(stackData[stackData.length - 1], d => d[1])])
-        .nice();
+      // /** draw rect layers */
+      // let rectLayers = content.append("g")
+      //   .selectAll("g")
+      //   .data(stackData)
+      //   .join("g")
+      //   .attr("class", "rectLayer")
+      //   // .attr("fill", (d, i) => COLOR.CATEGORICAL[i]);
+      //   .attr("fill", COLOR.DEFAULT);
+      // rectLayers.selectAll("rect")
+      //   .data(d => d)
+      //   .enter().append("rect")
+      //   .attr("class", "mark")
+      //   .attr("x", d => {
+      //     d[xEncoding] = d.data[xEncoding]
+      //     return xScale(d.data[xEncoding])
+      //   })
+      //   .attr("y", d => yScale(d[1]))
+      //   .attr("width", xScale.bandwidth())
+      //   .attr("height", d => Math.abs(yScale(d[1]) - yScale(d[0])))
+      //   .attr("rx", this.cornerRadius)
+      //   .attr("ry", this.cornerRadius)
+      //   .attr("fill-opacity", this.fillOpacity)
+      //   .attr("stroke", this.stroke)
+      //   .attr("stroke-width", this.strokeWidth)
+      //   .attr("stroke-opacity", this.strokeOpacity)
 
-      /** draw rect layers */
-      let rectLayers = content.append("g")
-        .selectAll("g")
-        .data(stackData)
-        .join("g")
-        .attr("class", "rectLayer")
-        // .attr("fill", (d, i) => COLOR.CATEGORICAL[i]);
-        .attr("fill", COLOR.DEFAULT);
-      rectLayers.selectAll("rect")
-        .data(d => d)
-        .enter().append("rect")
-        .attr("class", "mark")
-        .attr("x", d => {
-          d[xEncoding] = d.data[xEncoding]
-          return xScale(d.data[xEncoding])
-        })
-        .attr("y", d => yScale(d[1]))
-        .attr("width", xScale.bandwidth())
-        .attr("height", d => Math.abs(yScale(d[1]) - yScale(d[0])))
-        .attr("rx", this.cornerRadius)
-        .attr("ry", this.cornerRadius)
-        .attr("fill-opacity", this.fillOpacity)
-        .attr("stroke", this.stroke)
-        .attr("stroke-width", this.strokeWidth)
-        .attr("stroke-opacity", this.strokeOpacity)
-
-      d3.selectAll(".rectLayer")
-        .transition()
-        .duration('duration' in animation ? animation['duration'] : 0)
-        .attr("fill", (d, i) => COLOR.CATEGORICAL[i % COLOR.CATEGORICAL.length]);
+      // d3.selectAll(".rectLayer")
+      //   .transition()
+      //   .duration('duration' in animation ? animation['duration'] : 0)
+      //   .attr("fill", (d, i) => COLOR.CATEGORICAL[i % COLOR.CATEGORICAL.length]);
     }
   }
 

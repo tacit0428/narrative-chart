@@ -351,8 +351,9 @@ class Texture extends Annotator {
                     .attr("patternUnits", "userSpaceOnUse")
                     .append("svg:image")
                     .attr("xlink:href", style["background-image"])
+                    .attr("preserveAspectRatio","xMidYMid slice")
                     .attr("width", config.texture_size)
-                    .attr("height", config.texture_size)
+                    .attr("height", bbox.height)
                     .attr("x", 0)
                     .attr("y", 0);
 
