@@ -51,50 +51,33 @@ class Glow extends Annotator {
         feMerge.append("feMergeNode")
             .attr("in", "FillPaint");
 
-        if (chart instanceof ProgressBar) {
-            svg.select(".mark")
-                .transition()
-                .duration('duration' in animation ? animation['duration'] : 0)
-                .style("stroke", function () {
-                    if ('color' in style) {
-                        return style['color']
-                    } else {
-                        return COLOR.ANNOTATION
-                    }
-                })
-                .attr("stroke-opacity", 1)
-                .attr("stroke-width", 2)
-                .style("filter", "url(#drop-shadow)")
-                .attr("opacity", 1)
-        } else {
-            svg.selectAll(".mark")
-                .filter(function (d) {
-                    if (target.length === 0) {
-                        return true
-                    }
-                    for (const item of target) {
-                        if (d[item.field] === item.value) {
-                            continue
-                        } else {
-                            return false
-                        }
-                    }
+        svg.selectAll(".mark")
+            .filter(function (d) {
+                if (target.length === 0) {
                     return true
-                })
-                .transition()
-                .duration('duration' in animation ? animation['duration'] : 0)
-                .style("stroke", function () {
-                    if ('color' in style) {
-                        return style['color']
+                }
+                for (const item of target) {
+                    if (d[item.field] === item.value) {
+                        continue
                     } else {
-                        return COLOR.ANNOTATION
+                        return false
                     }
-                })
-                .attr("stroke-opacity", 1)
-                .attr("stroke-width", 2)
-                .style("filter", "url(#drop-shadow)")
-                .attr("opacity", 1)
-        }
+                }
+                return true
+            })
+            .transition()
+            .duration('duration' in animation ? animation['duration'] : 0)
+            .style("stroke", function () {
+                if ('color' in style) {
+                    return style['color']
+                } else {
+                    return COLOR.ANNOTATION
+                }
+            })
+            .attr("stroke-opacity", 1)
+            .attr("stroke-width", 2)
+            .style("filter", "url(#drop-shadow)")
+            .attr("opacity", 1)
     }
 }
 

@@ -211,7 +211,6 @@ class ProgressBar extends Chart {
   encodeX() {
     if (this.x) {
       let width = this.width()
-
       let content = d3.select(".content");
       content.append('rect')
         .attr('class', 'progress-rect')
@@ -239,88 +238,88 @@ class ProgressBar extends Chart {
     if (this.color) {
       let width = this.width(),
         height = this.height() - offset;
-      const data = this.data();
-      const xEncoding = this.x,
-        yEncoding = this.y;
+      const xEncoding = this.x
       const colorEncoding = this.color;
       let content = d3.select(".content");
 
-      console.log(data,xEncoding,yEncoding,colorEncoding)
-      // /** clear rects */
-      // d3.selectAll(".rects").remove();
+      /** clear rects */
+      d3.selectAll(".rects").remove();
+      
+      /** process data */
+      const processedData = this.processedData()
+      let processedDict = []
+      let totalX = 0
+      processedData.forEach((d, i) => {
+        processedDict.push({[colorEncoding]:d[colorEncoding],[xEncoding]:d[xEncoding]})
+        totalX += d[xEncoding]
+      })
 
-      // /** process data */
-      // // get series
-      // let seriesData = {};
-      // data.forEach(d => {
-      //   if (seriesData[d[colorEncoding]]) {
-      //     seriesData[d[colorEncoding]].push(d);
-      //   } else {
-      //     seriesData[d[colorEncoding]] = [d];
-      //   }
-      // });
-      // let series = Object.keys(seriesData);
-      // let seriesDict = {}
-      // series.forEach(d => seriesDict[d] = 0)
+      let scale = d3.scaleLinear()
+      .range([0, width])
+      .domain([0, totalX])
+        
+      let preX = 0
+      processedDict.forEach((d, i) => {
+        d.width = scale(d[xEncoding])
+        d.x = preX
+        preX += d.width
+      })
 
-      // // adjust data structure to fit stackdata
-      // const processedData = this.processedData()
-      // let processedDict = {}
-      // processedData.forEach((d, i) => {
-      //   let temp = {}
-      //   temp[d[colorEncoding]] = d[yEncoding]
-      //   processedDict[d[xEncoding]] = { ...processedDict[d[xEncoding]], ...temp }
-      // })
-      // let stackProcessedData = []
-      // for (let key in processedDict) {
-      //   let temp2 = {}
-      //   temp2[xEncoding] = key
-      //   stackProcessedData.push({ ...seriesDict, ...temp2, ...processedDict[key] })
-      // }
-      // let stackData = d3.stack().keys(series)(stackProcessedData);
+      // Trick for single side corner
+      let defs = content.append('svg:defs');
+      let cornerLeft = defs.append("svg:clipPath")
+        .attr("id", "round-corner-left")
+        .append("svg:rect")
+        .attr('height', width/8)
+        .attr('rx', this.cornerRadius)
+        .attr('ry', this.cornerRadius)
+      
+      let cornerRight = defs.append("svg:clipPath")
+        .attr("id", "round-corner-right")
+        .append("svg:rect")
+        .attr('height', width/8)
+        .attr('rx', this.cornerRadius)
+        .attr('ry', this.cornerRadius)
+      
+      let counts = processedDict.length
+      if (counts > 1) {
+        let left = processedDict[0].width
+        let right = processedDict[counts - 1].width
+        cornerLeft.attr('width', left+this.cornerRadius)
+        cornerRight.attr('width',right+this.cornerRadius)
+      }
 
+      let progress = content.append("g")
+            .attr("class", "rects")
+            .selectAll("rect")
+            .data(processedDict)
+            .enter().append('rect')
+        .attr('class', 'mark')
+        .attr('fill', function (d, i) { return COLOR.CATEGORICAL[i] })
+            .attr("opacity", 1)
+            .attr('height', width / 8)
+            .attr('x', d=>d.x)
+            .attr('y', 0)
 
-      // /** set the ranges */
-      // let xScale = d3.scaleBand()
-      //   .range([0, width - 12])
-      //   .domain(data.map(d => d[xEncoding]))
-      //   .padding(this.binSpacing);
+      if (counts > 1) {
+        progress.attr('clip-path', function (d, i) {
+          if (i === 0) {
+            return 'url(#round-corner-left)'
+          } else if (i === counts - 1) {
+            return 'url(#round-corner-right)'
+          } else {
+            return ''
+          }
+        })
+      } else if (counts == 1) {
+        progress.attr('rx', this.cornerRadius)
+        .attr('ry',this.cornerRadius)
+      }
 
-      // let yScale = d3.scaleLinear()
-      //   .range([height, 0])
-      //   .domain([0, d3.max(stackData[stackData.length - 1], d => d[1])])
-      //   .nice();
-
-      // /** draw rect layers */
-      // let rectLayers = content.append("g")
-      //   .selectAll("g")
-      //   .data(stackData)
-      //   .join("g")
-      //   .attr("class", "rectLayer")
-      //   // .attr("fill", (d, i) => COLOR.CATEGORICAL[i]);
-      //   .attr("fill", COLOR.DEFAULT);
-      // rectLayers.selectAll("rect")
-      //   .data(d => d)
-      //   .enter().append("rect")
-      //   .attr("class", "mark")
-      //   .attr("x", d => {
-      //     d[xEncoding] = d.data[xEncoding]
-      //     return xScale(d.data[xEncoding])
-      //   })
-      //   .attr("y", d => yScale(d[1]))
-      //   .attr("width", xScale.bandwidth())
-      //   .attr("height", d => Math.abs(yScale(d[1]) - yScale(d[0])))
-      //   .attr("rx", this.cornerRadius)
-      //   .attr("ry", this.cornerRadius)
-      //   .attr("fill-opacity", this.fillOpacity)
-      //   .attr("stroke", this.stroke)
-      //   .attr("stroke-width", this.strokeWidth)
-      //   .attr("stroke-opacity", this.strokeOpacity)
-
-      // d3.selectAll(".rectLayer")
-      //   .transition()
-      //   .duration('duration' in animation ? animation['duration'] : 0)
-      //   .attr("fill", (d, i) => COLOR.CATEGORICAL[i % COLOR.CATEGORICAL.length]);
+          // add animation
+          progress.transition()
+          .duration('duration' in animation ? animation['duration'] : 0)
+          .attr('width', d=>d.width)
     }
   }
 
@@ -333,16 +332,11 @@ class ProgressBar extends Chart {
     if (!this[channel]) {
       this[channel] = field;
 
-      let changeX = false;
-      let changeColor = false;
-
       switch (channel) {
         case "x":
-          changeX = true;
           this.encodeX();
           break;
         case "color":
-          changeColor = true
           this.encodeColor(animation)
           break;
         default:

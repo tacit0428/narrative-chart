@@ -27,11 +27,7 @@ class Label extends Annotator {
 
         const yEncoding = chart.y;
 
-        let focus_elements
-        if (chart instanceof ProgressBar) {
-            focus_elements = svg.selectAll(".mark")
-        } else {
-            focus_elements = svg.selectAll(".mark")
+        let focus_elements = svg.selectAll(".mark")
                 .filter(function (d) {
                     if (target.length === 0) {
                         return true
@@ -45,7 +41,6 @@ class Label extends Annotator {
                     }
                     return true
                 });
-        }
 
         // if the focus defined in the spec does not exist
         if (focus_elements.length === 0) {

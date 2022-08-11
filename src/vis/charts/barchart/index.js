@@ -604,7 +604,6 @@ class BarChart extends Chart {
             let stackData = d3.stack().keys(series)(stackProcessedData);
 
 
-
             /** set the ranges */
             let xScale = d3.scaleBand()
                 .range([0, width - 12])
@@ -616,6 +615,14 @@ class BarChart extends Chart {
                 .domain([0, d3.max(stackData[stackData.length - 1], d => d[1])])
                 .nice();
 
+            let yTop = []
+            for (let d of stackData[stackData.length - 1]) {
+                yTop.push(d[1])
+            }
+
+             /** Trick for single side corner */
+            let defs = content.append('svg:defs');
+            
             /** draw rect layers */
             let rectLayers = content.append("g")
                 .selectAll("g")
@@ -632,16 +639,30 @@ class BarChart extends Chart {
                     d[xEncoding] = d.data[xEncoding]
                     return xScale(d.data[xEncoding])
                 })
-                .attr("y", d => yScale(d[1]))
+                .attr("y", d =>  yScale(d[1]) )
                 .attr("width", xScale.bandwidth())
-                .attr("height", d => Math.abs(yScale(d[1]) - yScale(d[0])))
-                .attr("rx", this.cornerRadius)
-                .attr("ry", this.cornerRadius)
+                .attr("height", d => Math.abs(yScale(d[1]) - yScale(d[0])) )
                 .attr("fill-opacity", this.fillOpacity)
                 .attr("stroke", this.stroke)
                 .attr("stroke-width", this.strokeWidth)
                 .attr("stroke-opacity", this.strokeOpacity)
-
+                .attr('clip-path', (d, i) => {
+                    if (d[0] < d[1] && d[1] === yTop[i]) {
+                        defs.append("svg:clipPath")
+                            .attr("id", `round-corner-${d[xEncoding]}`)
+                            .append("svg:rect")
+                            .attr('width', xScale.bandwidth())
+                            .attr('height',Math.abs(yScale(d[1]) - yScale(d[0]))+this.cornerRadius)
+                            .attr('rx', this.cornerRadius)
+                            .attr('ry', this.cornerRadius)
+                            .attr('x', xScale(d.data[xEncoding]))
+                            .attr('y',yScale(d[1]))
+                        return `url(#round-corner-${d[xEncoding]})`
+                    } else {
+                        return ''
+                    }
+                })
+            
             d3.selectAll(".rectLayer")
                 .transition()
                 .duration('duration' in animation ? animation['duration'] : 0)

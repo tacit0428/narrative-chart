@@ -31,11 +31,7 @@ class Contour extends Annotator {
             });
         };
 
-        let focus_elements
-        if (chart instanceof ProgressBar) {
-            focus_elements = svg.selectAll(".mark")
-        } else {
-            focus_elements = svg.selectAll(".mark")
+        let focus_elements = svg.selectAll(".mark")
                 .filter(function (d) {
                     if (target.length === 0) {
                         return true
@@ -49,7 +45,6 @@ class Contour extends Annotator {
                     }
                     return true
                 });
-        }
 
         focus_elements.nodes().forEach((one_element) => {
             const nodeName = one_element.nodeName;
@@ -60,6 +55,7 @@ class Contour extends Annotator {
                 const _height = parseFloat(one_element.getAttribute("height"));
 
                 const d_width = style['stroke-width'] ?? chart.markStyle()["stroke-width"] ?? 2;
+                const corner_radius = 'corner-radius' in chart.markStyle() ? chart.markStyle()['corner-radius'] : 0
 
                 function draw_rect(x, y, w, h, r) {
                     let retval;
@@ -77,9 +73,29 @@ class Contour extends Annotator {
                     return retval;
 
                 }
+
+                function rounded_rect(x, y, w, h, r, tl, tr, bl, br) {
+                    var retval;
+                    retval  = "M" + (x + r) + "," + y;
+                    retval += "h" + (w - 2*r);
+                    if (tr) { retval += "a" + r + "," + r + " 0 0 1 " + r + "," + r; }
+                    else { retval += "h" + r; retval += "v" + r; }
+                    retval += "v" + (h - 2*r);
+                    if (br) { retval += "a" + r + "," + r + " 0 0 1 " + -r + "," + r; }
+                    else { retval += "v" + r; retval += "h" + -r; }
+                    retval += "h" + (2*r - w);
+                    if (bl) { retval += "a" + r + "," + r + " 0 0 1 " + -r + "," + -r; }
+                    else { retval += "h" + -r; retval += "v" + -r; }
+                    retval += "v" + (2*r - h);
+                    if (tl) { retval += "a" + r + "," + r + " 0 0 1 " + r + "," + -r; }
+                    else { retval += "v" + -r; retval += "h" + r; }
+                    retval += "z";
+                    return retval;
+                }
+
+                
                 const contour_rect = svg
                     .append("path")
-                    .attr("d", draw_rect(_x, _y, _width, _height, 'corner-radius' in chart.markStyle() ? chart.markStyle()['corner-radius'] : 0))
                     .attr("fill", "none")
                     .attr("stroke", function () {
                         if ('color' in style) {
@@ -90,6 +106,19 @@ class Contour extends Annotator {
                     })
                     .attr("stroke-width", d_width)
                     .attr("stroke-linecap", "square"); // to make sure the path can be closed completely
+                
+                if (chart instanceof ProgressBar) {
+                    if (_x === 0) {
+                        contour_rect.attr("d",rounded_rect(_x, _y, _width, _height, corner_radius,true,false,true,false))
+                    } else if (_x + _width === chart._width) {
+                        contour_rect.attr("d",rounded_rect(_x, _y, _width, _height, corner_radius,false,true,false,true))
+                    } else {
+                        contour_rect.attr("d", draw_rect(_x, _y, _width, _height, 0))
+                    }
+                } else {
+                    contour_rect.attr("d", draw_rect(_x, _y, _width, _height, corner_radius))
+                }
+
                 if ("type" in animation && animation["type"] === "wipe") {
                     let pathLength;
 

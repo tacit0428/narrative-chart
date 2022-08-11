@@ -338,6 +338,21 @@ class Texture extends Annotator {
                 )
              } else if (chart instanceof ProgressBar) {
                 let focus_element = svg.selectAll(".mark")
+                .filter(function(d) {
+                    if (target.length === 0) {
+                        return true
+                    }
+                    for (const item of target) {
+                        if (d[item.field] === item.value) {
+                            return true
+                        } 
+                    }
+                    return false
+                })
+
+                if (focus_element.nodes().length === 0) {
+                    return 
+                }
                 let node = focus_element.nodes()[0]
                 let bbox = node.getBBox()
                 var config = {

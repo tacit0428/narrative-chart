@@ -425,6 +425,14 @@ class HBarChart extends Chart {
                 .domain([0, d3.max(stackData[stackData.length - 1], d => d[1])])
                 .nice();
 
+            let yTop = []
+            for (let d of stackData[stackData.length - 1]) {
+                yTop.push(d[1])
+            }
+
+            /** Trick for single side corner */
+            let defs = content.append('svg:defs');
+            
             /** draw rect layers */
             let rectLayers = content.append("g")
                 .selectAll("g")
@@ -444,13 +452,27 @@ class HBarChart extends Chart {
                 })
                 .attr("width", d => Math.abs(yScale(d[1]) - yScale(d[0])))
                 .attr("height", xScale.bandwidth())
-                .attr("rx", this.cornerRadius)
-                .attr("ry", this.cornerRadius)
                 .attr("fill-opacity", this.fillOpacity)
                 .attr("stroke", this.stroke)
                 .attr("stroke-width", this.strokeWidth)
                 .attr("stroke-opacity", this.strokeOpacity)
-
+                .attr('clip-path', (d, i) => {
+                    if (d[0] < d[1] && d[1] === yTop[i]) {
+                        defs.append("svg:clipPath")
+                            .attr("id", `round-corner-${d[xEncoding]}`)
+                            .append("svg:rect")
+                            .attr('width', Math.abs(yScale(d[1]) - yScale(d[0]))+this.cornerRadius)
+                            .attr('height',xScale.bandwidth())
+                            .attr('rx', this.cornerRadius)
+                            .attr('ry', this.cornerRadius)
+                            .attr('x', yScale(d[0])-this.cornerRadius)
+                            .attr('y',xScale(d.data[xEncoding]))
+                        return `url(#round-corner-${d[xEncoding]})`
+                    } else {
+                        return ''
+                    }
+                })
+            
             d3.selectAll(".rectLayer")
                 .transition()
                 .duration('duration' in animation ? animation['duration'] : 0)

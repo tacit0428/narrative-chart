@@ -25,25 +25,19 @@ class Arrow extends Annotator {
     annotate(chart, target, style, animation) {
         let svg = chart.svg();
         // filter for elements that meet the conditions(`target`)
-        let focus_elements
-        if (chart instanceof ProgressBar) {
-            focus_elements = svg.selectAll(".mark")
-        } else {
-            focus_elements = svg.selectAll(".mark")
+        let focus_elements = svg.selectAll(".mark")
                 .filter(function (d) {
                     if (target.length === 0) {
                         return true
                     }
                     for (const item of target) {
                         if (d[item.field] === item.value) {
-                            continue
-                        } else {
-                            return false
-                        }
+                            return true
+                        } 
                     }
-                    return true
+                    return false
                 });
-        }
+
         // return if the focus defined in the spec does not exist
         if (focus_elements.empty()) {
             return;

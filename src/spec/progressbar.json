@@ -48,7 +48,7 @@
       "mark": {
         "type": "progress",
         "style": {
-          "corner-radius": 3,
+          "corner-radius": 10,
           "stroke-width": 1,
           "stroke": "white"
         }
@@ -92,6 +92,11 @@
       "field": "Sales"
     },
     {
+      "add": "encoding",
+      "channel": "color",
+      "field": "Brand"
+    },
+    {
       "add": "annotation",
       "method": "fill",
       "target": [
@@ -102,6 +107,22 @@
       ],
       "style": {
         "color": "#CCABAB"
+      },
+      "animation": {
+        "duration": 1000
+      }
+    },
+    {
+      "add": "annotation",
+      "method": "fill",
+      "target": [
+        {
+          "field": "Brand",
+          "value": "Honda"
+        }
+      ],
+      "style": {
+        "color": "#FFDDAB"
       },
       "animation": {
         "duration": 1000
@@ -130,6 +151,10 @@
         {
           "field": "Brand",
           "value": "Ford"
+        },
+        {
+          "field": "Brand",
+          "value": "Honda"
         }
       ],
       "style": {
