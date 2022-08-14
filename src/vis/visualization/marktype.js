@@ -6,7 +6,8 @@ const MarkType = {
     ARC: 'arc',
     AREA: 'area',
     HBAR: 'hbar',
-    PROGRESS: 'progress'
+    PROGRESS: 'progress',
+    BUBBLE:'bubble'
 }
 
 export default MarkType

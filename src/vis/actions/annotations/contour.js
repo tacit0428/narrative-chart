@@ -1,32 +1,32 @@
 import * as d3 from 'd3';
 import Color from '../../visualization/color';
 import Annotator from './annotator';
-import { PieChart, ProgressBar } from '../../charts';
+import { PieChart,ProgressBar,Bubblechart } from '../../charts';
 
 const COLOR = new Color();
 
 /**
  * @description An annotator for drawing contour.
- * 
+ *
  * @class
  * @extends Annotator
  */
 class Contour extends Annotator {
     /**
      * @description Annotate targeted elements with contour.
-     * 
+     *
      * @param {Chart} chart src/vis/charts/chart.js
      * @param {Array} target It describes the data scope of the annotation, which is defined by a list of filters: [{field_1: value_1}, ..., {field_k, value_k}]. By default, the target is the entire data.
      * @param {{color: string}} style Style parameters of the annotation.
      * @param {{delay: number, duration: number}} animation Animation parameters of the annotation.
-     * 
+     *
      * @return {void}
      */
     annotate(chart, target, style, animation) {
         let svg = chart.svg();
         // method to move the specific element to the top layer
-        d3.selection.prototype.moveToFront = function () {
-            return this.each(function () {
+        d3.selection.prototype.moveToFront = function() {
+            return this.each(function(){
                 this.parentNode.appendChild(this);
             });
         };
@@ -122,13 +122,13 @@ class Contour extends Annotator {
                 if ("type" in animation && animation["type"] === "wipe") {
                     let pathLength;
 
-                    contour_rect.attr("stroke-dasharray", function () {
-                        return pathLength = this.getTotalLength();
-                    })
-                        .attr("stroke-dashoffset", pathLength)
-                        .transition()
-                        .duration('duration' in animation ? animation['duration'] : 0)
-                        .attr("stroke-dashoffset", 0);
+                    contour_rect.attr("stroke-dasharray", function() {
+                                    return pathLength = this.getTotalLength();
+                                })
+                                .attr("stroke-dashoffset", pathLength)
+                                .transition()
+                                .duration('duration' in animation ? animation['duration']: 0)
+                                .attr("stroke-dashoffset", 0);
                 } else {
                     contour_rect.attr("opacity", 0)
                         .transition()
@@ -144,8 +144,10 @@ class Contour extends Annotator {
 
                 d_contour_circle.arc(_x, _y, _r, 0, 360)
 
-                const d_width = style['stroke-width'] ?? chart.markStyle()["stroke-width"] ?? 2;
-
+                let d_width = style['stroke-width'] ?? chart.markStyle()["stroke-width"] ?? 2;
+                if(chart instanceof Bubblechart){
+                    d_width = d_width ? d_width : 2;
+                }
                 const contour_circle = svg.append("path")
                     .attr("d", d_contour_circle)
                     .attr("fill", "none")
@@ -192,13 +194,13 @@ class Contour extends Annotator {
                 if ("type" in animation && animation["type"] === "wipe") {
                     let pathLength;
 
-                    contour_arc.attr("stroke-dasharray", function () {
-                        return pathLength = this.getTotalLength();
-                    })
-                        .attr("stroke-dashoffset", pathLength)
-                        .transition()
-                        .duration('duration' in animation ? animation['duration'] : 0)
-                        .attr("stroke-dashoffset", 0);
+                    contour_arc.attr("stroke-dasharray", function() {
+                                    return pathLength = this.getTotalLength();
+                                })
+                                .attr("stroke-dashoffset", pathLength)
+                                .transition()
+                                .duration('duration' in animation ? animation['duration']: 0)
+                                .attr("stroke-dashoffset", 0);
                 } else {
                     contour_arc.attr("opacity", 0)
                         .transition()
