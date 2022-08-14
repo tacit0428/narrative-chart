@@ -286,7 +286,8 @@ class ProgressBar extends Chart {
         let left = processedDict[0].width
         let right = processedDict[counts - 1].width
         cornerLeft.attr('width', left+this.cornerRadius)
-        cornerRight.attr('width',right+this.cornerRadius)
+        cornerRight.attr('width', right + this.cornerRadius)
+                    .attr('x',processedDict[counts-1].x - this.cornerRadius)
       }
 
       let progress = content.append("g")
@@ -294,8 +295,8 @@ class ProgressBar extends Chart {
             .selectAll("rect")
             .data(processedDict)
             .enter().append('rect')
-        .attr('class', 'mark')
-        .attr('fill', function (d, i) { return COLOR.CATEGORICAL[i] })
+            .attr('class', 'mark')
+            .attr('fill', function (d, i) { return COLOR.CATEGORICAL[i] })
             .attr("opacity", 1)
             .attr('height', width / 8)
             .attr('x', d=>d.x)
@@ -316,10 +317,10 @@ class ProgressBar extends Chart {
         .attr('ry',this.cornerRadius)
       }
 
-          // add animation
-          progress.transition()
-          .duration('duration' in animation ? animation['duration'] : 0)
-          .attr('width', d=>d.width)
+      // add animation
+      progress.transition()
+        .duration('duration' in animation ? animation['duration'] : 0)
+        .attr('width', d=>d.width)
     }
   }
 
@@ -389,52 +390,11 @@ class ProgressBar extends Chart {
         })
     }
     if (channel === 'color') {
-      new Promise((resolve, reject) => {
-        this.content.selectAll(".rectLayer")
+        this.content.selectAll(".mark")
           .transition()
           .duration('duration' in animation ? animation['duration'] : 0)
           .attr("fill", COLOR.DEFAULT)
-          .on("end", resolve)
-      })
-        .then(() => {
-          this.svg().selectAll(".rectLayer").remove();
-          let processedData = this.processedData();
-          this.content.append("g")
-            .attr("class", "rects")
-            .selectAll("rect")
-            .data(processedData)
-            .enter().append("rect")
-            .attr("class", "mark")
-            .attr("x", d => this.xScale(d[this.x]))
-            .attr("y", d => this.yScale(d[this.y]))
-            .attr("width", this.xScale.bandwidth())
-            .attr("height", d => this.height() - offset - this.yScale(d[this.y]))
-            .attr("fill", this.fill)
-            .attr("rx", this.cornerRadius)
-            .attr("ry", this.cornerRadius)
-            .attr("fill-opacity", this.fillOpacity)
-            .attr("stroke", this.stroke)
-            .attr("stroke-width", this.strokeWidth)
-            .attr("stroke-opacity", this.strokeOpacity);
-        })
     }
-  }
-
-  /**
-    * @description Adding grow(together) animation to the chart
-    *
-    * @param {{delay: number, duration: number}} animation Animation parameters of the action.
-    *
-    * @return {void}
-   */
-  animationGrowTogether(animation) {
-    this.content.selectAll(".mark")
-      .data(this.bardata)
-      .transition()
-      .duration(animation['duration'])
-      .ease(d3.easeLinear)
-      .attr("y", d => this.yScale(d[this.y]))
-      .attr("height", d => this.height() - offset - this.yScale(d[this.y]))
   }
 
   /**
